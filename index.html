@@ -149,21 +149,39 @@
   .member .mc{font-size:9px; color:#9aa7c6; margin-top:2px; white-space:nowrap}
   .conn{position:absolute; height:2px; background:linear-gradient(90deg,#2f7d63,transparent); opacity:0; transition:opacity .3s}
   .conn.show{opacity:.6}
-  /* mobile vertical race */
-  .mgroup{background:var(--card); border:1px solid var(--line); border-radius:12px; margin-bottom:8px; overflow:hidden}
-  .mghead{display:flex; align-items:center; gap:9px; padding:9px 11px; cursor:pointer}
-  .mghead .gb{font-size:11px; font-weight:700; color:#0b1220; background:var(--pre); border-radius:5px; padding:1px 6px}
-  .mghead .lf img{width:26px; height:26px; border-radius:50%; border:1.5px solid #2c3a58}
-  .mghead.fav .lf img{border-color:var(--gold)}
-  .mghead .nm{font-size:14px; font-weight:600; flex:1}
-  .mghead .pt{font-size:12px; color:var(--gold); font-weight:700}
-  .mgbody{display:none; padding:0 11px 9px} .mgbody.open{display:block}
-  .mteam{display:flex; align-items:center; gap:9px; padding:6px 2px; border-top:1px solid var(--line)}
-  .mteam .rk{font-size:12px; font-weight:700; width:18px; color:var(--dim)}
-  .mteam.q .rk{color:var(--accent)} .mteam.q3 .rk{color:var(--gold)}
-  .mteam img{width:24px; height:24px; border-radius:50%}
-  .mteam .nm{flex:1; font-size:13px} .mteam .pt{font-size:13px; font-weight:700; color:var(--gold)}
-  .mteam .ms{font-size:15px; color:#5d6a88; cursor:pointer} .mteam .ms.on{color:var(--gold)}
+  /* mobile vertical climb */
+  .climb{background:linear-gradient(180deg,#0d1626,#0a1322); border:1px solid var(--line);
+         border-radius:16px; padding:14px 12px; margin-top:4px}
+  .csummit{text-align:center; padding-bottom:6px}
+  .csummit .cup{font-size:40px; filter:drop-shadow(0 0 14px rgba(245,196,81,.8)); animation:cg 2.4s ease-in-out infinite; display:inline-block}
+  .csummit .clbl{font-size:12px; color:var(--gold); font-weight:700; margin-top:2px}
+  .cstage{display:flex; align-items:center; gap:10px; padding:9px 4px; border-top:1px dashed #20304d}
+  .cstage .cname{font-size:12px; color:#7e8cab; width:42px; flex:0 0 42px; text-align:right; font-weight:600}
+  .cstage .cslots{display:flex; flex-wrap:wrap; gap:5px; align-items:center; flex:1}
+  .cwait{font-size:11px; color:#5b6884}
+  .cflag{width:26px; height:26px; border-radius:50%; border:1.5px solid #34425f}
+  .cflag.elim{filter:grayscale(1); opacity:.45}
+  .cgroupzone{background:rgba(91,155,255,.05); border-radius:10px; margin-top:6px; padding:8px}
+  .cgroupzone .cgz{font-size:12px; color:#9be8c9; font-weight:600; margin-bottom:7px}
+  .cgroups{display:flex; flex-wrap:wrap; gap:6px}
+  .cg{display:flex; align-items:center; gap:5px; background:var(--card2); border:1px solid #20304d; border-radius:9px; padding:3px 8px 3px 4px; cursor:pointer}
+  .cg.open{border-color:#2f7d63; background:rgba(54,211,153,.10)}
+  .cg .cgb{font-size:10px; font-weight:700; color:#0b1220; background:var(--pre); border-radius:4px; padding:0 4px}
+  .cg .cglf{position:relative; width:24px; height:24px}
+  .cg .cglf img{width:24px; height:24px; border-radius:50%; border:1.5px solid #34425f}
+  .cg .cglf img.favr{border-color:var(--gold); box-shadow:0 0 7px rgba(245,196,81,.8)}
+  .cg .cgmd{position:absolute; left:-5px; top:-6px; font-size:10px}
+  .cg .cgn{font-size:11px; color:#cdd7ef}
+  .mgexpand{margin-top:8px}
+  .mgcard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:4px 10px 6px}
+  .mgcard .mgt{display:flex; align-items:center; gap:8px; padding:5px 0; border-top:1px solid var(--line)}
+  .mgcard .mgt:first-of-type{border-top:none}
+  .mgcard .rk{font-size:12px; font-weight:700; width:16px; color:var(--dim)}
+  .mgcard .mgt.q .rk{color:var(--accent)} .mgcard .mgt.q3 .rk{color:var(--gold)}
+  .mgcard img{width:22px; height:22px; border-radius:50%}
+  .mgcard .nm{flex:1; font-size:13px} .mgcard .pt{font-size:12px; font-weight:700; color:var(--gold)}
+  .mgcard .ms{font-size:14px; color:#5d6a88; cursor:pointer} .mgcard .ms.on{color:var(--gold)}
+  .cstart{text-align:center; font-size:11px; color:#6f7ea0; margin-top:8px; border-top:1px dashed #20304d; padding-top:8px}
 </style>
 </head>
 <body>
@@ -491,18 +509,43 @@ function koFlag(name,info,x,y){
   return el;
 }
 function raceMobileHTML(){
-  return STANDINGS.groups.map(g=>{
-    const t=g.teams[0];
-    const rows=g.teams.map((x,k)=>`<div class="mteam ${k<2?'q':''} ${k===2?'q3':''}">
+  const RI=buildRaceInfo();
+  const stages=[{label:"决赛",n:2,round:"决赛"},{label:"四强",n:4,round:"半决赛"},
+    {label:"八强",n:8,round:"八强"},{label:"16强",n:8,round:"16强"},{label:"32强",n:16,round:"32强"}];
+  let h=`<div class="climb">`;
+  h+=`<div class="csummit"><div class="cup">🏆</div><div class="clbl">冠军 · 终点</div></div>`;
+  for(const s of stages){
+    const here=Object.keys(RI.info).filter(n=>RI.info[n].reached===s.round);
+    let slots;
+    if(here.length){
+      slots=here.slice(0,12).map(n=>{ const ab=NAME2ABBR[n]||""; const el=RI.info[n].eliminated;
+        return `<img class="cflag${el?' elim':''}" src="${teamFlag({abbr:ab})}" title="${n}">`; }).join("");
+    }else{ slots=`<span class="cwait">${s.n} 队 · 待定</span>`; }
+    h+=`<div class="cstage"><span class="cname">${s.label}</span><span class="cslots">${slots}</span></div>`;
+  }
+  h+=`<div class="cstage cgroupzone" style="display:block"><div class="cgz">⬇ 小组赛 · 起跑区（点组展开排名）</div><div class="cgroups">`;
+  h+=STANDINGS.groups.map(g=>{ const t=g.teams[0];
+    return `<div class="cg" id="cg-${g.letter}" onclick="toggleMG('${g.letter}')">
+      <span class="cgb">${g.letter}</span>
+      <span class="cglf"><span class="cgmd">🥇</span><img class="${isFav(t.abbr)?'favr':''}" src="${teamFlag(t)}"></span>
+      <span class="cgn">${t.abbr} ${t.pts||0}分</span></div>`; }).join("");
+  h+=`</div><div id="mgexpand" class="mgexpand"></div></div>`;
+  h+=`<div class="cstart">起跑 · 小组赛 ↑ 一路爬到冠军</div></div>`;
+  return h;
+}
+function toggleMG(letter){
+  const box=document.getElementById("mgexpand"); if(!box) return;
+  document.querySelectorAll(".cg").forEach(e=>e.classList.remove("open"));
+  if(box.dataset.open===letter){ box.innerHTML=""; box.dataset.open=""; return; }
+  const g=STANDINGS.byLetter[letter]; if(!g) return;
+  box.dataset.open=letter;
+  const cg=document.getElementById("cg-"+letter); if(cg) cg.classList.add("open");
+  box.innerHTML=`<div class="mgcard"><div class="otitle" style="margin:2px 0 3px">${letter} 组（前 2 直接出线，第 3 名或晋级）</div>`+
+    g.teams.map((x,k)=>`<div class="mgt ${k<2?'q':''} ${k===2?'q3':''}">
       <span class="rk">${k+1}</span><img src="${teamFlag(x)}"><span class="nm">${x.name}</span>
-      <span class="pt">${x.pts||0}</span>
-      <span class="ms ${isFav(x.abbr)?'on':''}" onclick="event.stopPropagation();toggleFav('${x.abbr}')">${isFav(x.abbr)?'⭐':'☆'}</span></div>`).join("");
-    return `<div class="mgroup">
-      <div class="mghead ${isFav(t.abbr)?'fav':''}" onclick="this.nextElementSibling.classList.toggle('open')">
-        <span class="gb">${g.letter}</span><span class="lf"><img src="${teamFlag(t)}"></span>
-        <span class="nm">🥇 ${t.name}</span><span class="pt">${t.pts||0}分</span></div>
-      <div class="mgbody">${rows}</div></div>`;
-  }).join("") + `<div class="src" style="opacity:.85">前 2 名直接出线（绿）· 第 3 名可能凭成绩晋级（金）<br>淘汰赛开始后这里会显示晋级进程</div>`;
+      <span class="pt">${x.pts||0}分</span>
+      <span class="ms ${isFav(x.abbr)?'on':''}" onclick="event.stopPropagation();toggleFav('${x.abbr}')">${isFav(x.abbr)?'⭐':'☆'}</span></div>`).join("")
+    +`</div>`;
 }
 
 /* ============ formatting + rendering ============ */
